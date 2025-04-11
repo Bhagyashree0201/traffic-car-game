@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Traffic Car Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #222;
+    }
+    #gameArea {
+      width: 400px;
+      height: 600px;
+      margin: 50px auto;
+      background: #333;
+      position: relative;
+      overflow: hidden;
+      border: 4px solid white;
+    }
+    #playerCar {
+      width: 50px;
+      height: 100px;
+      background: red;
+      position: absolute;
+      bottom: 20px;
+      left: 175px;
+      border-radius: 8px;
+    }
+    .enemyCar {
+      width: 50px;
+      height: 100px;
+      background: yellow;
+      position: absolute;
+      top: -120px;
+      border-radius: 8px;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="gameArea">
+  <div id="playerCar"></div>
+  <div id="score">Score: 0</div>
+</div>
+
+<script>
+  const gameArea = document.getElementById("gameArea");
+  const playerCar = document.getElementById("playerCar");
+  const scoreDisplay = document.getElementById("score");
+
+  const lanePositions = [75, 175, 275];
+  let currentLane = 1; // 0-left, 1-center, 2-right
+  let score = 0;
+  let speed = 4;
+  let gameRunning = true;
+
+  // Move player car left or right
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" && currentLane > 0) {
+      currentLane--;
+      playerCar.style.left = lanePositions[currentLane] + "px";
+    }
+    if (e.key === "ArrowRight" && currentLane < 2) {
+      currentLane++;
+      playerCar.style.left = lanePositions[currentLane] + "px";
+    }
+  });
+
+  // Spawn enemy car
+  function spawnEnemy() {
+    const enemy = document.createElement("div");
+    enemy.classList.add("enemyCar");
+
+    const lane = Math.floor(Math.random() * 3);
+    enemy.style.left = lanePositions[lane] + "px";
+    enemy.style.top = "-120px";
+
+    gameArea.appendChild(enemy);
+
+    let position = -120;
+
+    const move = setInterval(() => {
+      if (!gameRunning) {
+        clearInterval(move);
+        return;
+      }
+
+      position += speed;
+      enemy.style.top = position + "px";
+
+      if (position > 600) {
+        clearInterval(move);
+        enemy.remove();
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+        if (score % 10 === 0) speed += 0.5; // Increase difficulty
+      }
+
+      // Collision detection
+      const playerRect = playerCar.getBoundingClientRect();
+      const enemyRect = enemy.getBoundingClientRect();
+
+      if (
+        playerRect.left < enemyRect.right &&
+        playerRect.right > enemyRect.left &&
+        playerRect.top < enemyRect.bottom &&
+        playerRect.bottom > enemyRect.top
+      ) {
+        gameRunning = false;
+        alert("💥 Crash! Game Over!\nScore: " + score);
+        location.reload();
+      }
+
+    }, 20);
+  }
+
+  // Spawn enemies every 1.2 seconds
+  setInterval(() => {
+    if (gameRunning) spawnEnemy();
+  }, 1200);
+</script>
+
+</body>
+</html>
